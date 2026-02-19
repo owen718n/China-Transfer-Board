@@ -1085,10 +1085,19 @@
     const keys=stats.map(s=>s.key);
     const labels=keys.map(getNttAxisLabel);
     const vals=stats.map(s=>s.amount);
+    const ymax=niceMaxTight(Math.max(...vals,0));
 
-    const pad={l:64,r:16,t:10,b:56};
+    const pad={l:64,r:16,t:28,b:56};
     const n=Math.max(1, keys.length);
     const slotW=(w-pad.l-pad.r)/n;
+
+    // Reserve enough left space for y-axis labels so long values are not clipped.
+    ctx.save();
+    ctx.font="11px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
+    const yTicks=Array.from({length:5}, (_,i)=>ymax*(1-i/4));
+    const maxTickW=yTicks.reduce((m,v)=>Math.max(m, ctx.measureText(v.toLocaleString(undefined,{maximumFractionDigits:0})).width), 0);
+    pad.l=Math.max(64, Math.ceil(maxTickW)+16);
+    ctx.restore();
 
     ctx.save();
     ctx.font="11px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
@@ -1115,16 +1124,14 @@
     pad.b = Math.max(56, 26 + maxLines*14);
 
     const g=drawAxes(ctx,w,h,pad);
-
-    const ymax=niceMaxTight(Math.max(...vals,0));
     const bw=(g.right-g.left)/n;
     const barW=Math.max(10, bw*0.68);
 
-    // title
+    // axis/header title
     ctx.save();
     ctx.fillStyle="rgba(15,23,42,.75)";
     ctx.font="12px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
-    ctx.fillText((lang==="zh" ? `保留（按${nttLabelForMode()}）` : `保留 by ${nttLabelForMode()}`), g.left, g.top-4);
+    ctx.fillText((lang==="zh" ? `年金额($) · 保留（按${nttLabelForMode()}）` : `Annual Amount ($) · Retained by ${nttLabelForMode()}`), g.left, g.top-8);
     ctx.restore();
 
     // Bars
@@ -1158,6 +1165,17 @@
       });
       ctx.restore();
     }
+
+    // y-axis tick labels
+    ctx.save();
+    ctx.fillStyle="rgba(71,85,105,.95)";
+    ctx.font="11px ui-sans-serif, system-ui";
+    for(let i=0;i<=4;i++){
+      const val=ymax*(1-i/4);
+      const yy=g.top+(g.bot-g.top)*i/4;
+      ctx.fillText(val.toLocaleString(undefined,{maximumFractionDigits:0}), 6, yy+4);
+    }
+    ctx.restore();
 
     // interactions
     const tip=document.getElementById("tip");
