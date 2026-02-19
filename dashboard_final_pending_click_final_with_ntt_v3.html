@@ -1065,11 +1065,17 @@
       const y0=g.bot - (v/ymax)*(g.bot-g.top);
       const isSel = keys[i]===selectedNttKey;
 
-      // bar
-      ctx.save();
-      ctx.fillStyle = isSel ? "rgba(139,92,246,.72)" : "rgba(139,92,246,.38)";
-      ctx.fillRect(x0, y0, barW, g.bot-y0);
-      ctx.restore();
+      // bar (match pending-category visual style, but use red palette)
+      ctx.fillStyle = isSel ? "rgba(220,38,38,.9)" : "rgba(220,38,38,.56)";
+      ctx.beginPath();
+      ctx.roundRect(x0, y0, barW, g.bot-y0, 8);
+      ctx.fill();
+
+      if(isSel){
+        ctx.strokeStyle="rgba(15,23,42,.28)";
+        ctx.lineWidth=2;
+        ctx.stroke();
+      }
 
       // label
       ctx.save();
