@@ -985,7 +985,9 @@
     else if(nttMode==="reason") v = d["原因"];
     else v = d["归类"];
     v = (v ?? "").toString().trim();
-    return v || (lang==="zh" ? "（空）" : "(Blank)");
+    if(v) return v;
+    if(nttMode==="brand") return (lang==="zh" ? "非品牌" : "Non-brand");
+    return (lang==="zh" ? "（空）" : "(Blank)");
   }
 
   function getNttStats(){
