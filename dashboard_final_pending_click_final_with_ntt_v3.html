@@ -241,9 +241,9 @@
 
         <div class="break"></div>
 
-        <div class="item ntt"><div class="label" id="kpi8Label">Not to Transfer 每年采购成本</div><div class="value" id="kpiAmountNtt">-</div></div>
-        <div class="item ntt"><div class="label" id="kpi9Label">Not to Transfer 节省总金额</div><div class="value" id="kpiSavingNtt">-</div></div>
-        <div class="item ntt"><div class="label" id="kpi10Label">Not to Transfer 零件数</div><div class="value" id="kpiCountNtt">-</div></div>
+        <div class="item ntt"><div class="label" id="kpi8Label">保留 每年采购成本</div><div class="value" id="kpiAmountNtt">-</div></div>
+        <div class="item ntt"><div class="label" id="kpi9Label">保留 节省总金额</div><div class="value" id="kpiSavingNtt">-</div></div>
+        <div class="item ntt"><div class="label" id="kpi10Label">保留 零件数</div><div class="value" id="kpiCountNtt">-</div></div>
       </div>
       <div class="kpiPiePanel">
         <div class="kpiPieHead">
@@ -357,13 +357,13 @@
   
   <div class="card" id="nttCard">
     <div class="cardHeader">
-      <h2 id="nttTitle">Not to Transfer 零件（按维度统计：年金额）</h2>
+      <h2 id="nttTitle">保留 零件（按维度统计：年金额）</h2>
       <div class="segBtns">
         <button id="nttBtnCat" class="on">按归类</button>
         <button id="nttBtnBrand">按品牌</button>
         <button id="nttBtnReason">按原因</button>
       </div>
-      <div class="sub" id="nttSub">仅使用本次 Excel 的 Not to Transfer 数据；点击柱子查看明细</div>
+      <div class="sub" id="nttSub">仅使用本次 Excel 的 保留 数据；点击柱子查看明细</div>
     </div>
     <div class="cardBody">
       <canvas id="cNtt"></canvas>
@@ -490,9 +490,9 @@
       kpi5:"计划每年采购成本（未完成）",
       kpi6:"计划每年节省金额（未完成）",
       kpi7:"计划零件数（未完成）",
-      kpi8:"Not to Transfer 每年采购成本",
-      kpi9:"Not to Transfer 节省总金额",
-      kpi10:"Not to Transfer 零件数",
+      kpi8:"保留 每年采购成本",
+      kpi9:"保留 节省总金额",
+      kpi10:"保留 零件数",
       kpi4:"当前选中月份",
       hintTop:"提示：点击下方“月份汇总”的某一行，图表会同步高亮该月，并展示该月明细。",
       chartMetric:"每月贡献（可对比：采购成本 vs 节省金额）",
@@ -546,7 +546,7 @@
       pieCount:"数量",
       pieDone:"完成",
       piePlan:"计划",
-      pieNtt:"Not to Transfer",
+      pieNtt:"保留",
     },
     en: {
       pageTitle:"China Transfer Dashboard (Offline)",
@@ -560,9 +560,9 @@
       kpi5:"Planned Purchase Cost (Not Done)",
       kpi6:"Planned Saving Amount (Not Done)",
       kpi7:"Planned Parts Qty (Not Done)",
-      kpi8:"Not to Transfer Annual Purchase Cost",
-      kpi9:"Not to Transfer Total Saving",
-      kpi10:"Not to Transfer Parts Qty",
+      kpi8:"保留 Annual Purchase Cost",
+      kpi9:"保留 Total Saving",
+      kpi10:"保留 Parts Qty",
       kpi4:"Selected Month",
       hintTop:"Tip: Click a row in Monthly Summary. Charts highlight the month and show details.",
       chartMetric:"Monthly Contribution (Compare: Cost vs Saving)",
@@ -616,7 +616,7 @@
       pieCount:"Qty",
       pieDone:"Done",
       piePlan:"Planned",
-      pieNtt:"Not to Transfer",
+      pieNtt:"保留",
     }
   };
 
@@ -930,7 +930,7 @@
 
 
   
-  // ===== Not to Transfer (from separate Excel) =====
+  // ===== 保留 (from separate Excel) =====
   let NTT = null; // {rows:[]}
   let nttMode = "cat"; // "cat" | "brand" | "reason"
   let selectedNttKey = null;
@@ -1055,7 +1055,7 @@
     ctx.save();
     ctx.fillStyle="rgba(15,23,42,.75)";
     ctx.font="12px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
-    ctx.fillText((lang==="zh" ? `Not to Transfer（按${nttLabelForMode()}）` : `Not to Transfer by ${nttLabelForMode()}`), g.left, g.top-4);
+    ctx.fillText((lang==="zh" ? `保留（按${nttLabelForMode()}）` : `保留 by ${nttLabelForMode()}`), g.left, g.top-4);
     ctx.restore();
 
     // Bars
@@ -1749,7 +1749,7 @@ function getPendingRows(){
     updateToggleBtn("btnPieCount", true);
     renderKpiPie();
   });
-  // Not to Transfer mode buttons
+  // 保留 mode buttons
   document.getElementById("nttBtnCat")?.addEventListener("click", ()=>setNttMode("cat"));
   document.getElementById("nttBtnBrand")?.addEventListener("click", ()=>setNttMode("brand"));
   document.getElementById("nttBtnReason")?.addEventListener("click", ()=>setNttMode("reason"));
