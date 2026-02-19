@@ -979,6 +979,36 @@
     }
   }
 
+  const reasonLocaleMap = {
+    "价格": "Price",
+    "成本": "Cost",
+    "交期": "Lead Time",
+    "质量": "Quality",
+    "停产": "EOL",
+    "国产化": "Localization",
+    "关税": "Tariff",
+    "供应风险": "Supply Risk",
+    "策略": "Strategy"
+  };
+
+  function localizeReasonLabel(v){
+    const raw = (v ?? "").toString().trim();
+    if(!raw) return lang==="zh" ? "（空）" : "(Blank)";
+
+    const direct = reasonLocaleMap[raw];
+    if(direct) return lang==="zh" ? raw : direct;
+
+    const reverse = Object.entries(reasonLocaleMap).find(([,en]) => en.toLowerCase()===raw.toLowerCase());
+    if(reverse) return lang==="zh" ? reverse[0] : reverse[1];
+
+    return raw;
+  }
+
+  function getNttDisplayLabel(key){
+    if(nttMode==="reason") return localizeReasonLabel(key);
+    return key;
+  }
+
   function getNttKey(d){
     let v="";
     if(nttMode==="brand") v = d["品牌"];
@@ -1038,15 +1068,43 @@
     const c=document.getElementById(canvasId);
     if(!c) return;
     const {ctx,w,h}=setupCanvas(c);
-    const pad={l:64,r:16,t:10,b:56};
-    const g=drawAxes(ctx,w,h,pad);
-
     const stats=getNttStats();
     if(!selectedNttKey && stats.length){ selectedNttKey = stats[0].key; buildNttDetailTable(); }
 
     const keys=stats.map(s=>s.key);
+    const labels=keys.map(getNttDisplayLabel);
     const vals=stats.map(s=>s.amount);
+
+    const pad={l:64,r:16,t:10,b:56};
     const n=Math.max(1, keys.length);
+    const slotW=(w-pad.l-pad.r)/n;
+
+    ctx.save();
+    ctx.font="11px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
+    const wrappedLabels = labels.map(label=>{
+      const lines=[];
+      const chars = Array.from(String(label || ""));
+      let line="";
+      const maxW=Math.max(24, slotW*0.9);
+      for(const ch of chars){
+        const next=line+ch;
+        if(line && ctx.measureText(next).width>maxW){
+          lines.push(line);
+          line=ch;
+        }else{
+          line=next;
+        }
+      }
+      if(line) lines.push(line);
+      return lines.length ? lines : [""];
+    });
+    ctx.restore();
+
+    const maxLines = wrappedLabels.reduce((m, lines)=>Math.max(m, lines.length), 1);
+    pad.b = Math.max(56, 26 + maxLines*14);
+
+    const g=drawAxes(ctx,w,h,pad);
+
     const ymax=niceMaxTight(Math.max(...vals,0));
     const bw=(g.right-g.left)/n;
     const barW=Math.max(10, bw*0.68);
@@ -1079,12 +1137,14 @@
 
       // label
       ctx.save();
-      ctx.translate(x0 + barW/2, g.bot + 38);
-      ctx.rotate(-Math.PI/6);
+      ctx.translate(x0 + barW/2, g.bot + 20);
       ctx.fillStyle="rgba(15,23,42,.75)";
       ctx.font="11px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
       ctx.textAlign="center";
-      ctx.fillText(keys[i], 0, 0);
+      const lines = wrappedLabels[i] || [labels[i] || ""];
+      lines.forEach((line, idx)=>{
+        ctx.fillText(line, 0, idx*14);
+      });
       ctx.restore();
     }
 
@@ -1111,7 +1171,7 @@
       const k=keys[hit];
       const s=stats[hit];
       tip.innerHTML = `
-        <div class="t1">${k}</div>
+        <div class="t1">${getNttDisplayLabel(k)}</div>
         <div class="r"><span class="badge">${lang==="zh" ? "年金额" : "Annual"}:</span><span>$ ${fmtMoney(s.amount)}</span></div>
         <div class="r"><span class="badge">${lang==="zh" ? "零件数" : "Count"}:</span><span>${s.count}</span></div>
         <div class="r"><span class="badge">${lang==="zh" ? "维度" : "Dim"}:</span><span>${nttLabelForMode()}</span></div>
