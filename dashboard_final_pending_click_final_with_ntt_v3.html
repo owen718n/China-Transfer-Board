@@ -991,15 +991,15 @@
     "策略": "Strategy"
   };
 
-  function localizeReasonLabel(v){
+  function localizeReasonLabel(v, targetLang = lang){
     const raw = (v ?? "").toString().trim();
-    if(!raw) return lang==="zh" ? "（空）" : "(Blank)";
+    if(!raw) return targetLang==="zh" ? "（空）" : "(Blank)";
 
     const direct = reasonLocaleMap[raw];
-    if(direct) return lang==="zh" ? raw : direct;
+    if(direct) return targetLang==="zh" ? raw : direct;
 
     const reverse = Object.entries(reasonLocaleMap).find(([,en]) => en.toLowerCase()===raw.toLowerCase());
-    if(reverse) return lang==="zh" ? reverse[0] : reverse[1];
+    if(reverse) return targetLang==="zh" ? reverse[0] : reverse[1];
 
     return raw;
   }
@@ -1007,6 +1007,11 @@
   function getNttDisplayLabel(key){
     if(nttMode==="reason") return localizeReasonLabel(key);
     return key;
+  }
+
+  function getNttAxisLabel(key){
+    if(nttMode==="reason") return localizeReasonLabel(key, "zh");
+    return getNttDisplayLabel(key);
   }
 
   function getNttKey(d){
@@ -1072,7 +1077,7 @@
     if(!selectedNttKey && stats.length){ selectedNttKey = stats[0].key; buildNttDetailTable(); }
 
     const keys=stats.map(s=>s.key);
-    const labels=keys.map(getNttDisplayLabel);
+    const labels=keys.map(getNttAxisLabel);
     const vals=stats.map(s=>s.amount);
 
     const pad={l:64,r:16,t:10,b:56};
