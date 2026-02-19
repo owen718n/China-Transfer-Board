@@ -1608,8 +1608,8 @@ function getPendingRows(){
   }
 
 
-  // ===== View toggle: show Pending-only section on clicking any "Plan" KPI =====
-  let viewMode = "default"; // "default" | "pending"
+  // ===== View toggle: show Pending/保留 section based on KPI click =====
+  let viewMode = "default"; // "default" | "pending" | "ntt"
 
   function setViewMode(mode){
     const wrap = document.querySelector(".wrap");
@@ -1618,9 +1618,10 @@ function getPendingRows(){
     const grid2 = wrap.querySelector(".grid2");
     const cumCard = document.getElementById("cCum")?.closest(".card");
     const pendingCard = document.getElementById("cPendingCat")?.closest(".card");
+    const nttCard = document.getElementById("nttCard");
     const monthlyCard = document.getElementById("monthDetailCard");
 
-    if(!pendingCard) return;
+    if(!pendingCard || !nttCard) return;
 
     viewMode = mode;
 
@@ -1629,17 +1630,30 @@ function getPendingRows(){
       if(cumCard) cumCard.style.display = "none";
       if(monthlyCard) monthlyCard.style.display = "none";
       pendingCard.style.display = "";
+      nttCard.style.display = "none";
 
       // Make sure sizes are correct after becoming visible
       buildPendingDetailTable();
       drawPendingCat("cPendingCat");
 
       // Optional: scroll into view for better UX
-      try{ pendingCard.scrollIntoView({behavior:"smooth", block:"start"}); }catch(_){}
+      try{ pendingCard.scrollIntoView({behavior:"smooth", block:"start"}); }catch(_){ }
+    }else if(mode === "ntt"){
+      if(grid2) grid2.style.display = "none";
+      if(cumCard) cumCard.style.display = "none";
+      if(monthlyCard) monthlyCard.style.display = "none";
+      pendingCard.style.display = "none";
+      nttCard.style.display = "";
+
+      buildNttDetailTable();
+      drawNtt("cNtt");
+
+      try{ nttCard.scrollIntoView({behavior:"smooth", block:"start"}); }catch(_){ }
     }else{
       if(grid2) grid2.style.display = "";
       if(cumCard) cumCard.style.display = "";
       pendingCard.style.display = "none";
+      nttCard.style.display = "none";
       updateMonthDetailVisibility();
     }
   }
@@ -1652,7 +1666,23 @@ function getPendingRows(){
       if(!box) return;
       box.style.cursor = "pointer";
       box.title = (lang==="zh") ? "点击查看未完成零件（按归类统计）" : "Click to view pending parts by category";
+      if(box.dataset.viewBound === "1") return;
       box.addEventListener("click", ()=>setViewMode("pending"));
+      box.dataset.viewBound = "1";
+    });
+  }
+
+  function bindNttKpiToNttView(){
+    const ids = ["kpiAmountNtt","kpiSavingNtt","kpiCountNtt"];
+    ids.forEach(id=>{
+      const v = document.getElementById(id);
+      const box = v?.closest(".item");
+      if(!box) return;
+      box.style.cursor = "pointer";
+      box.title = (lang==="zh") ? "点击查看保留零件（按维度统计）" : "Click to view retained parts by dimension";
+      if(box.dataset.viewBound === "1") return;
+      box.addEventListener("click", ()=>setViewMode("ntt"));
+      box.dataset.viewBound = "1";
     });
   }
 
@@ -1688,7 +1718,7 @@ function getPendingRows(){
       if(!(DATA?.monthly?.length)) showErr("数据为空：请确认明细存在且 month 字段有效。");
       applyLang();
       bindPlanKpiToPendingView();
-  setViewMode("default");
+      bindNttKpiToNttView();
       setViewMode("default");
       buildMonthlyTable();
       buildPendingCatTable();
@@ -1712,8 +1742,11 @@ function getPendingRows(){
   document.getElementById("langBtn").addEventListener("click", ()=>{
     lang = (lang==="zh") ? "en" : "zh";
     document.getElementById("langBtn").textContent = (lang==="zh") ? "EN" : "中文";
-    applyLang(); bindPlanKpiToPendingView();
-  setViewMode("default"); renderCharts();
+    applyLang();
+    bindPlanKpiToPendingView();
+    bindNttKpiToNttView();
+    setViewMode("default");
+    renderCharts();
   });
   document.getElementById("resetBtn").addEventListener("click", resetSelection);
 
