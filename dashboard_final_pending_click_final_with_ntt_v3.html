@@ -212,7 +212,6 @@
     <div class="pill" id="metaPill">数据源：已内嵌（完全离线）</div>
     <div class="btn">
       <button id="langBtn">EN</button>
-      <button id="resetBtn">重置选择</button>
     </div>
   </div>
 </header>
@@ -644,7 +643,6 @@
     const t=i18n[lang];
     document.getElementById("pageTitle").textContent=t.pageTitle;
     document.getElementById("metaPill").textContent=t.meta;
-    document.getElementById("resetBtn").textContent=t.reset;
     document.getElementById("kpiTitle").textContent=t.kpiTitle;
     document.getElementById("ruleText").textContent=t.rule;
     document.getElementById("kpi1Label").textContent=t.kpi1;
@@ -1686,6 +1684,20 @@ function getPendingRows(){
     });
   }
 
+  function bindDoneKpiToResetSelection(){
+    const ids = ["kpiAmountDone","kpiSavingDone","kpiCountDone"];
+    ids.forEach(id=>{
+      const v = document.getElementById(id);
+      const box = v?.closest(".item");
+      if(!box) return;
+      box.style.cursor = "pointer";
+      box.title = (lang==="zh") ? "点击重置选择" : "Click to reset selection";
+      if(box.dataset.resetBound === "1") return;
+      box.addEventListener("click", resetSelection);
+      box.dataset.resetBound = "1";
+    });
+  }
+
 
   function selectMonth(m){
     selectedMonth=m;
@@ -1719,6 +1731,7 @@ function getPendingRows(){
       applyLang();
       bindPlanKpiToPendingView();
       bindNttKpiToNttView();
+      bindDoneKpiToResetSelection();
       setViewMode("default");
       buildMonthlyTable();
       buildPendingCatTable();
@@ -1745,10 +1758,10 @@ function getPendingRows(){
     applyLang();
     bindPlanKpiToPendingView();
     bindNttKpiToNttView();
+    bindDoneKpiToResetSelection();
     setViewMode("default");
     renderCharts();
   });
-  document.getElementById("resetBtn").addEventListener("click", resetSelection);
 
   document.getElementById("btnCost").addEventListener("click", ()=>{
     showCost=!showCost; if(!showCost && !showSaving) showCost=true;
