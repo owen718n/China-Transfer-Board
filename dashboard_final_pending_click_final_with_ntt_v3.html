@@ -1339,7 +1339,6 @@ function getPendingRows(){
     if(!c) return;
     const {ctx,w,h}=setupCanvas(c);
     const pad={l:64,r:16,t:10,b:56};
-    const g=drawAxes(ctx,w,h,pad);
 
     const stats=getPendingCatStats();
     if(!selectedPendingCat && stats.length) { selectedPendingCat = stats[0].cat; buildPendingDetailTable(); }
@@ -1347,6 +1346,43 @@ function getPendingRows(){
     const vals=stats.map(s=>s.amount);
     const n=Math.max(1,cats.length);
     const ymax=niceMaxTight(Math.max(...vals,0));
+
+    // Reserve enough left space for y-axis labels.
+    ctx.save();
+    ctx.font="11px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
+    const yTicks=Array.from({length:5}, (_,i)=>ymax*(1-i/4));
+    const maxTickW=yTicks.reduce((m,v)=>Math.max(m, ctx.measureText(v.toLocaleString(undefined,{maximumFractionDigits:0})).width), 0);
+    pad.l=Math.max(64, Math.ceil(maxTickW)+16);
+    ctx.restore();
+
+    const slotW=(w-pad.l-pad.r)/n;
+
+    // Make sure every bar has a readable x-axis label without overlap.
+    ctx.save();
+    ctx.font="11px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
+    const wrappedLabels=cats.map(cat=>{
+      const lines=[];
+      const chars=Array.from(String(cat || ""));
+      let line="";
+      const maxW=Math.max(22, slotW*0.92);
+      for(const ch of chars){
+        const next=line+ch;
+        if(line && ctx.measureText(next).width>maxW){
+          lines.push(line);
+          line=ch;
+        }else{
+          line=next;
+        }
+      }
+      if(line) lines.push(line);
+      return lines.length ? lines : [""];
+    });
+    ctx.restore();
+
+    const maxLines = wrappedLabels.reduce((m, lines)=>Math.max(m, lines.length), 1);
+    pad.b = Math.max(56, 26 + maxLines*14);
+
+    const g=drawAxes(ctx,w,h,pad);
     const bw=(g.right-g.left)/n;
     const barW=Math.max(10, bw*0.68);
 
@@ -1373,15 +1409,15 @@ function getPendingRows(){
     // Axes labels
     ctx.fillStyle="rgba(71,85,105,.95)";
     ctx.font="11px ui-sans-serif, system-ui";
-    const step=Math.max(1, Math.ceil(cats.length/12));
-    for(let i=0;i<cats.length;i+=step){
+    ctx.textAlign="center";
+    for(let i=0;i<cats.length;i++){
       const xx=g.left + bw*i + bw/2;
-      ctx.save();
-      ctx.translate(xx, h-16);
-      ctx.rotate(-0.55);
-      ctx.fillText(cats[i], -18, 0);
-      ctx.restore();
+      const lines = wrappedLabels[i] || [cats[i] || ""];
+      lines.forEach((line, idx)=>{
+        ctx.fillText(line, xx, g.bot + 20 + idx*14);
+      });
     }
+    ctx.textAlign="start";
     for(let i=0;i<=4;i++){
       const val=ymax*(1-i/4);
       const yy=g.top+(g.bot-g.top)*i/4;
